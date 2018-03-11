@@ -14,57 +14,71 @@ source("./fit_funs.R")
 ui <- dashboardPage(
     skin = "green",
     dashboardHeader(title = "Shiny Stopped Flow"),
+
     # Sidebar
     dashboardSidebar(
         "Jannik Buhr",
         hr(),
-        # Inputs
-        fileInput(inputId = "file", label = "Raw input data", accept = c("text/csv", ".csv")),
-        hr(),
-        numericInput(inputId = "filter", label = "Filter one value",
-                     value = 8),
-        numericInput(inputId = "bin", label = "Bin Size",
-                     value = 10, min = 1, max = 100, step = 1),
 
-        # Input for graphing and fitting
-        dateInput(inputId = "date", label = "date",
-                  value = Sys.time()),
-        textInput(inputId = "experiment", label = "Name of your experiment",
-                  value = "Stopped Flow: H450-1"),
-        textInput(inputId = "run", label = "Run or numbering",
-                  value = "run: 1"),
-        radioButtons(inputId = "phases", label = "type of exponential decay for the fit",
-                     choices = list("1 phase" = 1, "2 phase" = 2, "3 phase" = 3))
+        # Inputs
+        menuItem("Data", icon = icon("flask"), startExpanded = T,
+                 fileInput(inputId = "file", label = "Raw input data", accept = c("text/csv", ".csv"))
+        ),
+
+        menuItem("Options", icon = icon("cogs"), startExpanded = T,
+                 numericInput(inputId = "filter", label = "Filter one value",
+                              value = 8),
+                 numericInput(inputId = "bin", label = "Bin Size",
+                              value = 10, min = 1, max = 100, step = 1),
+
+                 # Input for graphing and fitting
+                 dateInput(inputId = "date", label = "date",
+                           value = Sys.time()),
+                 textInput(inputId = "experiment", label = "Name of your experiment",
+                           value = "Stopped Flow: H450-1"),
+                 textInput(inputId = "run", label = "Run or numbering",
+                           value = "run: 1"),
+                 radioButtons(inputId = "phases", label = "type of exponential decay for the fit",
+                              choices = list("1 phase" = 1, "2 phase" = 2, "3 phase" = 3))
+        )
 
     ),
 
     dashboardBody(
 
-        # Outputs
-        # Tables
-        fluidRow(
-            box(
-                title = "Raw Data",
-                dataTableOutput(outputId = "raw")
-            ),
-            box(
-                title = "Processed Data",
-                dataTableOutput(outputId = "data"),
-                p("The data has been grouped into chunks of the specified size (bin size)
+        tabsetPanel(
+
+            tabPanel("Tables",
+                     # Outputs
+                     # Tables
+                     fluidRow(
+                         box(
+                             title = "Raw Data",
+                             dataTableOutput(outputId = "raw")
+                         ),
+                         box(
+                             title = "Processed Data",
+                             dataTableOutput(outputId = "data"),
+                             p("The data has been grouped into chunks of the specified size (bin size)
                         and averaged over these groups"),
-                downloadButton(outputId = "download", label = "Download processed data")
-            )
-        ),
-        # Plots
-        fluidRow(
-            # Raw Data
-            box(
-                title = "Raw Data",
-            plotOutput(outputId = "raw_plot")
+                             downloadButton(outputId = "download", label = "Download processed data")
+                         )
+                     )
             ),
-            box(
-                title = "Processed Data",
-                plotOutput(outputId = "processed_plot")
+
+            # Plots
+            tabPanel("Plots",
+                     fluidRow(
+                         # Raw Data
+                         box(
+                             title = "Raw Data",
+                             plotOutput(outputId = "raw_plot")
+                         ),
+                         box(
+                             title = "Processed Data",
+                             plotOutput(outputId = "processed_plot")
+                         )
+                     )
             )
         )
     )
