@@ -33,26 +33,26 @@ display_start <- function(df, model, starting){
 }
 
 # Fit one of the 3 exponential functions
-fit_decay <- function(df, phases){
+fit_decay <- function(df, phases, starting){
     if (phases == 1) {
-        mod <- nlsLM(data = data,
+        mod <- nlsLM(data = df,
                      fluorescence ~ decay1(X = time, Y0, Plateau, KFast),
-                     start = starting1,
+                     start = starting,
                      trace = F, control = nls.control()
         )
     }
     if (phases == 2) {
-        mod <- nlsLM(data = data,
+        mod <- nlsLM(data = df,
                      fluorescence ~ decay2(X = time, Y0, Plateau, KFast, KSlow, PercentFast),
-                     start = starting2,
+                     start = starting,
                      trace = F, control = nls.control()
         )
     }
     if (phases == 3) {
-        mod <- decay_model3 <- nlsLM(data = data,
+        mod <- decay_model3 <- nlsLM(data = df,
                                      fluorescence ~ decay3(X = time, Y0, Plateau, KFast, Kmedium, KSlow,
                                                            PercentFast, PercentSlow),
-                                     start = starting3,
+                                     start = starting,
                                      trace = F, control = nls.control()
         )
     }

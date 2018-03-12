@@ -5,6 +5,9 @@ library(shiny)
 library(shinydashboard)
 library(tidyverse)
 library(DT)
+library(broom)
+library(modelr)
+library(minpack.lm)
 
 source("./fit_funs.R")
 
@@ -37,9 +40,7 @@ ui <- dashboardPage(
                  textInput(inputId = "experiment", label = "Name of your experiment",
                            value = "Stopped Flow: H450-1"),
                  textInput(inputId = "run", label = "Run or numbering",
-                           value = "run: 1"),
-                 radioButtons(inputId = "phases", label = "type of exponential decay for the fit",
-                              choices = list("1 phase" = 1, "2 phase" = 2, "3 phase" = 3))
+                           value = "run: 1")
         )
 
     ),
@@ -79,11 +80,85 @@ ui <- dashboardPage(
                              plotOutput(outputId = "processed_plot")
                          )
                      )
+            ),
+
+            # Fits
+            tabPanel("Fits",
+                     tabsetPanel(
+                         tabPanel(title = "1 Phase exponential dacay",
+                                  inputPanel(
+                                      numericInput("Y01", "Y0", value = 9.48),
+                                      numericInput("Plateau1", "Plateau", value = 8.61),
+                                      numericInput("KFast1", "KFast", value = 40),
+                                      actionButton("go1", "Go!")
+                                  ),
+                                  fluidPage(
+                                  box(title = "Plot of Fit",
+                                      plotOutput(outputId = "p1_plot")
+                                  ),
+                                  box(title = "Residuals",
+                                      plotOutput(outputId = "p1_res")
+                                  ),
+                                  box(title = "Goodness of Fit", width = 12,
+                                      tableOutput(outputId = "p1_tidy"),
+                                      tableOutput(outputId = "p1_glance"),
+                                      textOutput(outputId = "p1_summary")
+                                  )
+                                  )
+                         ),
+                         tabPanel(title = "2 Phase exponential dacay",
+                                  inputPanel(
+                                      numericInput("Y02", "Y0", value = 9.48),
+                                      numericInput("Plateau2", "Plateau", value = 8.61),
+                                      numericInput("KFast2", "KFast", value = 40),
+                                      numericInput("KSlow2", "KSlow", value = 5),
+                                      numericInput("PercentFast2", "PercentFast", value = 90),
+                                      actionButton("go2", "Go!")
+                                  ),
+                                  fluidPage(
+                                  box(title = "Plot of Fit",
+                                      plotOutput(outputId = "p2_plot")
+                                  ),
+                                  box(title = "Residuals",
+                                      plotOutput(outputId = "p2_res")
+                                  ),
+                                  box(title = "Goodness of Fit", width = 12,
+                                      tableOutput(outputId = "p2_tidy"),
+                                      tableOutput(outputId = "p2_glance"),
+                                      textOutput(outputId = "p2_summary")
+                                  )
+                                  )
+                         ),
+                         tabPanel(title = "3 Phase exponential dacay",
+                                  inputPanel(
+                                      numericInput("Y0", "Y0", value = 9.48),
+                                      numericInput("Plateau3", "Plateau", value = 8.61),
+                                      numericInput("KFast3", "KFast", value = 40),
+                                      numericInput("Kmedium3", "Kmedium", value = 10),
+                                      numericInput("KSlow3", "KSlow", value = 5),
+                                      numericInput("PercentFast3", "PercentFast", value = 90),
+                                      numericInput("PercentSlow3", "PercentSlow", value = 5),
+                                      actionButton("go3", "Go!")
+                                  ),
+                                  fluidPage(
+                                  box(title = "Plot of Fit",
+                                      plotOutput(outputId = "p3_plot")
+                                  ),
+                                  box(title = "Residuals",
+                                      plotOutput(outputId = "p3_res")
+                                  ),
+                                  box(title = "Goodness of Fit", width = 12,
+                                      tableOutput(outputId = "p3_tidy"),
+                                      tableOutput(outputId = "p3_glance"),
+                                      textOutput(outputId = "p3_summary")
+                                  )
+                                  )
+                         )
+                     )
             )
         )
     )
 )
-
 
 
 # server ----------------------------------------------------------------------------------------------------------
@@ -191,11 +266,10 @@ server <- function(input, output) {
     # Output plots
     # raw
     output$raw_plot <- renderPlot({
-        # s = input$raw_rows_selected
-        # new <- rawdata()[s,]
-        # p <- rawdata() %>% plt()
-        # p + geom_point(data = new, color = "red")
-        plot(data = rawdata(), fluorescence ~ time)
+        s = input$raw_rows_selected
+        new <- rawdata()[s,]
+        p <- rawdata() %>% plt()
+        p + geom_point(data = new, color = "red")
     })
     # processed
     output$processed_plot <- renderPlot({
@@ -205,9 +279,172 @@ server <- function(input, output) {
         p + geom_point(data = new, color = "red")
     })
 
-    # Fitted
-    output$fitted <- renderPlot({})
 
+    # # Test Output for debugging
+    # output$test <- renderPrint({
+    #     model1()
+    # })
+
+
+
+    # Fit and make plots
+
+    ## 1 Phase
+    model1 <- eventReactive(input$go1, {
+        starting1 <- list(Y0 = input$Y01, Plateau = input$Plateau1, KFast = input$KFast1)
+        model1 <- fit_decay(df = final(), phases = 1, starting = starting1)
+        return(model1)
+    })
+
+
+    data_model1 <- reactive({
+        df <- extract_model(final(), model1())
+        df
+    })
+
+
+    td1 <- reactive({
+        tidy(model1())
+    })
+
+
+    # Send to fitted plots output
+    output$p1_plot <- renderPlot({
+        p <- data_model1() %>% plt() +
+            geom_line(aes(y = pred),
+                      color = "darkorange",
+                      size = 1.2,
+                      alpha = 0.9)
+        return(p)
+    })
+
+    ## 2 Phase
+    model2 <- eventReactive(input$go2, {
+        starting2 <- list(Y0 = input$Y02, Plateau = input$Plateau2, KFast = input$KFast2, KSlow = input$KSlow2,
+                          PercentFast = input$PercentFast2)
+        model2 <- fit_decay(df = final(), 2, starting2)
+        return(model2)
+    })
+
+
+
+    data_model2 <- reactive({
+        df <- extract_model(final(), model2())
+        df
+    })
+
+
+    td2 <- reactive({
+        tidy(model2())
+    })
+
+
+    # Send to fitted plots output
+    output$p2_plot <- renderPlot({
+        p <- data_model2() %>% plt() +
+            geom_line(aes(y = pred),
+                      color = "darkorange",
+                      size = 1.2,
+                      alpha = 0.9)
+        return(p)
+    })
+
+
+    ## 3 Phase
+    model3 <- eventReactive(input$go3, {
+        starting3 <- list(Y0 = input$Y03, Plateau = input$Plateau3, KFast = input$KFast3, Kmedium = input$Kmedium3,
+                          KSlow = input$KSlow3,
+                          PercentFast = input$PercentFast3, PercentSlow = input$PercentSlow3)
+        model3 <- fit_decay(df = final(), 3, starting3)
+        return(model3)
+    })
+
+
+
+    data_model3 <- reactive({
+        df <- extract_model(final(), model3())
+        df
+    })
+
+
+    td3 <- reactive({
+        tidy(model3())
+    })
+
+    # Send to fitted plots output
+    output$p3_plot <- renderPlot({
+        p <- data_model3() %>% plt() +
+            geom_line(aes(y = pred),
+                      color = "darkorange",
+                      size = 1.2,
+                      alpha = 0.9)
+        return(p)
+    })
+
+    # Resiuduals
+    # 1 Phase
+    output$p1_res <- renderPlot({
+        data_model1() %>% ggplot() +
+            aes(x = time, y = resid) +
+            theme_classic() +
+            geom_point()
+    })
+
+    # 2 Phase
+    output$p2_res <- renderPlot({
+        data_model2() %>% ggplot() +
+            aes(x = time, y = resid) +
+            theme_classic() +
+            geom_point()
+    })
+
+    # 3 Phase
+    output$p3_res <- renderPlot({
+        data_model3() %>% ggplot() +
+            aes(x = time, y = resid) +
+            theme_classic() +
+            geom_point()
+    })
+
+    # Model summary outputs
+    # 1 Phase
+    output$p1_tidy <- renderTable({
+        tidy(model1())
+    })
+
+    output$p1_glance <- renderTable({
+        glance(model1())
+    })
+
+    output$p1_summary <- renderPrint({
+        summary(model1()) %>% print()
+    })
+
+    # 2 Phase
+    output$p2_tidy <- renderTable({
+        tidy(model2())
+    })
+
+    output$p2_glance <- renderTable({
+        glance(model2())
+    })
+
+    output$p2_summary <- renderPrint({
+        summary(model2())
+    })
+
+    # 3 Phase
+    output$p3_tidy <- renderTable({
+        tidy(model3())
+    })
+
+    output$p3_glance <- renderTable({
+        glance(model3())
+    })
+
+    output$p3_summary <- renderPrint({
+        summary(model3())
+    })
 
 
 
@@ -217,4 +454,7 @@ server <- function(input, output) {
 
 # Run App ---------------------------------------------------------------------------------------------------------
 
+options(shiny.reactlog=TRUE)
+
 shinyApp(ui, server)
+
