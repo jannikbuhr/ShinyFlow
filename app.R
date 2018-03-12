@@ -180,7 +180,7 @@ server <- function(input, output) {
     # Download Processed data
     output$download <- downloadHandler(
         filename = function() {
-            paste(input$file, "_processed", ".csv", sep = "")
+            paste(substr(input$file, 1, nchar(input$file)-4), "_processed", ".csv", sep = "")
         },
         content = function(con){
             write_csv(final(), con)
