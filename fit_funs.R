@@ -7,6 +7,9 @@ decay1 <- function(X, Y0, Plateau, KFast){
 }
 
 decay2 <- function(X, Y0, Plateau, KFast, KSlow, PercentFast){
+    if (KSlow > KFast){
+        return(10000)
+    }
     YFast <- (Y0-Plateau)*PercentFast*.01*exp(-KFast*X)
     YSlow <- (Y0-Plateau)*(100-PercentFast)*.01*exp(-KSlow*X)
     Y <- Plateau + YFast + YSlow
@@ -14,6 +17,9 @@ decay2 <- function(X, Y0, Plateau, KFast, KSlow, PercentFast){
 }
 
 decay3 <- function(X, Y0, Plateau, KFast, Kmedium, KSlow, PercentFast, PercentSlow){
+    if (KSlow > KFast | KSlow > Kmedium | Kmedium > KFast | !((PercentFast + PercentSlow) < 100) ){
+        return(10000)
+    }
     YFast <- (Y0-Plateau)*PercentFast*.01*exp(-KFast*X)
     YSlow <- (Y0-Plateau)*PercentSlow*.01*exp(-KSlow*X)
     YMedium <- (Y0-Plateau)*(100-PercentFast - PercentSlow)*.01*exp(-Kmedium*X)
