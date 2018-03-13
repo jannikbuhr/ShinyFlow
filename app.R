@@ -131,13 +131,13 @@ ui <- dashboardPage(
                          ),
                          tabPanel(title = "3 Phase exponential dacay",
                                   inputPanel(
-                                      numericInput("Y0", "Y0", value = 9.48),
-                                      numericInput("Plateau3", "Plateau", value = 8.61),
-                                      numericInput("KFast3", "KFast", value = 40),
-                                      numericInput("Kmedium3", "Kmedium", value = 10),
-                                      numericInput("KSlow3", "KSlow", value = 5),
-                                      numericInput("PercentFast3", "PercentFast", value = 90),
-                                      numericInput("PercentSlow3", "PercentSlow", value = 5),
+                                      numericInput("Y03", "Y0", value = 9.54),
+                                      numericInput("Plateau3", "Plateau", value = 8.46),
+                                      numericInput("KFast3", "KFast", value = 50),
+                                      numericInput("Kmedium3", "Kmedium", value = 11),
+                                      numericInput("KSlow3", "KSlow", value = 0.3),
+                                      numericInput("PercentFast3", "PercentFast", value = 66),
+                                      numericInput("PercentSlow3", "PercentSlow", value = 17),
                                       actionButton("go3", "Go!")
                                   ),
                                   fluidPage(

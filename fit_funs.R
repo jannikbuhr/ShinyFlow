@@ -81,19 +81,19 @@ plot_fit <- function(df){
         geom_line(aes(y = pred),
                   color = "darkorange",
                   size = 1.2,
-                  alpha = 0.9) +
-        labs(caption = expression((y[start] - y[end]) %*% (P[fast] ~ e^(-k_fast %*% x) +P[slow] ~
-                                                               e^(-k_slow %*% x) + (1 - P[fast] - P[slow]) ~
-                                                               e^(-k_medium %*% x)) + y[end]), parse = T) +
-        annotate(
-            "text", label = paste("y_start =", round(y_start, 2), "\n", "y_end =", round(y_end, 2), "\n",
-                                  "k_fast = ", round(k_fast, 2), "\n", "t_half_fast =", round(t_half_fast, 4), "\n",
-                                  "k_slow = ", round(k_slow, 2), "\n", "t_half_slow =", round(t_half_slow, 4), "\n",
-                                  "k_medium = ", round(k_med, 2), "\n",
-                                  "sigma = ", round(sigma, 3)),
-            hjust = 1,
-            vjust = 1.5,
-            x = Inf, y = Inf
-        )
+                  alpha = 0.9)
+        # labs(caption = expression((y[start] - y[end]) %*% (P[fast] ~ e^(-k_fast %*% x) +P[slow] ~
+        #                                                        e^(-k_slow %*% x) + (1 - P[fast] - P[slow]) ~
+        #                                                        e^(-k_medium %*% x)) + y[end]), parse = T) +
+        # annotate(
+        #     "text", label = paste("y_start =", round(y_start, 2), "\n", "y_end =", round(y_end, 2), "\n",
+        #                           "k_fast = ", round(k_fast, 2), "\n", "t_half_fast =", round(t_half_fast, 4), "\n",
+        #                           "k_slow = ", round(k_slow, 2), "\n", "t_half_slow =", round(t_half_slow, 4), "\n",
+        #                           "k_medium = ", round(k_med, 2), "\n",
+        #                           "sigma = ", round(sigma, 3)),
+        #     hjust = 1,
+        #     vjust = 1.5,
+        #     x = Inf, y = Inf
+        # )
     return(p)
 }
