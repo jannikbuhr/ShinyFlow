@@ -31,7 +31,10 @@ ui <- dashboardPage(
 
     # Sidebar
     dashboardSidebar(
-        "Jannik Buhr",
+        h5("Jannik Buhr",
+        a(href= "mailto:jannik.buhr@stud.uni-heidelberg.de",
+          icon("envelope", lib = "font-awesome")
+        )),
         hr(),
 
         # Inputs
@@ -51,7 +54,10 @@ ui <- dashboardPage(
                  textInput(inputId = "experiment", label = "Name of your experiment",
                            value = "Stopped Flow: H450-1"),
                  textInput(inputId = "run", label = "Run or numbering",
-                           value = "run: 1")
+                           value = "run: 1"),
+                 selectInput("dev", label = "Save plots as:",
+                             choices = list("pdf", "png", "eps", "svg"),
+                             selected = "pdf")
         )
 
     ),
@@ -104,17 +110,18 @@ ui <- dashboardPage(
                                       actionButton("go1", "Go!")
                                   ),
                                   fluidPage(
-                                  box(title = "Plot of Fit",
-                                      plotOutput(outputId = "p1_plot")
-                                  ),
-                                  box(title = "Residuals",
-                                      plotOutput(outputId = "p1_res")
-                                  ),
-                                  box(title = "Goodness of Fit", width = 12,
-                                      tableOutput(outputId = "p1_tidy"),
-                                      tableOutput(outputId = "p1_glance"),
-                                      textOutput(outputId = "p1_summary")
-                                  )
+                                      box(title = "Plot of Fit",
+                                          plotOutput(outputId = "p1_plot"),
+                                          downloadButton("downloadPlot1")
+                                      ),
+                                      box(title = "Residuals",
+                                          plotOutput(outputId = "p1_res")
+                                      ),
+                                      box(title = "Goodness of Fit", width = 12,
+                                          tableOutput(outputId = "p1_tidy"),
+                                          tableOutput(outputId = "p1_glance"),
+                                          textOutput(outputId = "p1_summary")
+                                      )
                                   )
                          ),
                          tabPanel(title = "2 Phase exponential dacay",
@@ -127,17 +134,17 @@ ui <- dashboardPage(
                                       actionButton("go2", "Go!")
                                   ),
                                   fluidPage(
-                                  box(title = "Plot of Fit",
-                                      plotOutput(outputId = "p2_plot")
-                                  ),
-                                  box(title = "Residuals",
-                                      plotOutput(outputId = "p2_res")
-                                  ),
-                                  box(title = "Goodness of Fit", width = 12,
-                                      tableOutput(outputId = "p2_tidy"),
-                                      tableOutput(outputId = "p2_glance"),
-                                      textOutput(outputId = "p2_summary")
-                                  )
+                                      box(title = "Plot of Fit",
+                                          plotOutput(outputId = "p2_plot")
+                                      ),
+                                      box(title = "Residuals",
+                                          plotOutput(outputId = "p2_res")
+                                      ),
+                                      box(title = "Goodness of Fit", width = 12,
+                                          tableOutput(outputId = "p2_tidy"),
+                                          tableOutput(outputId = "p2_glance"),
+                                          textOutput(outputId = "p2_summary")
+                                      )
                                   )
                          ),
                          tabPanel(title = "3 Phase exponential dacay",
@@ -152,17 +159,17 @@ ui <- dashboardPage(
                                       actionButton("go3", "Go!")
                                   ),
                                   fluidPage(
-                                  box(title = "Plot of Fit",
-                                      plotOutput(outputId = "p3_plot")
-                                  ),
-                                  box(title = "Residuals",
-                                      plotOutput(outputId = "p3_res")
-                                  ),
-                                  box(title = "Goodness of Fit", width = 12,
-                                      tableOutput(outputId = "p3_tidy"),
-                                      tableOutput(outputId = "p3_glance"),
-                                      textOutput(outputId = "p3_summary")
-                                  )
+                                      box(title = "Plot of Fit",
+                                          plotOutput(outputId = "p3_plot")
+                                      ),
+                                      box(title = "Residuals",
+                                          plotOutput(outputId = "p3_res")
+                                      ),
+                                      box(title = "Goodness of Fit", width = 12,
+                                          tableOutput(outputId = "p3_tidy"),
+                                          tableOutput(outputId = "p3_glance"),
+                                          textOutput(outputId = "p3_summary")
+                                      )
                                   )
                          )
                      )
@@ -320,7 +327,7 @@ server <- function(input, output) {
 
 
     # Send to fitted plots output
-    output$p1_plot <- renderPlot({
+    p1_plot <- reactive({
         p <- data_model1() %>% plt() +
             geom_line(aes(y = pred),
                       color = "darkorange",
@@ -328,6 +335,9 @@ server <- function(input, output) {
                       alpha = 0.9)
         return(p)
     })
+
+    output$p1_plot <- renderPlot(p1_plot())
+
 
     ## 2 Phase
     model2 <- eventReactive(input$go2, {
@@ -456,6 +466,27 @@ server <- function(input, output) {
     output$p3_summary <- renderPrint({
         summary(model3())
     })
+
+
+
+    # Download Buttons ------------------------------------------------------------------------------------------------
+    graphic_device <- reactive(input$dev)
+
+    make_downloadbutton <- function(plot){
+        downloadHandler(
+            filename = function() { paste0(substr(input$file, 1, nchar(input$file)-4), "_fit", ".",
+                                           as.character(graphic_device())) },
+            content = function(file) {
+                ggsave(file, plot = plot, device = graphic_device())
+            }
+        )
+    }
+
+
+    output$downloadPlot1 <- make_downloadbutton(p1_plot())
+    output$downloadPlot2 <- make_downloadbutton(p2_plot())
+    output$downloadPlot3 <- make_downloadbutton(p3_plot())
+
 
 
 
