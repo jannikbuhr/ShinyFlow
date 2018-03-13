@@ -39,7 +39,7 @@ fit_decay <- function(df, phases, starting){
                      fluorescence ~ decay1(X = time, Y0, Plateau, KFast),
                      start = starting,
                      trace = F, control = nls.control(),
-                     lower = c(Y0 = 0, Plateau = 0, KFast = 0)
+                     lower = c(Y0 = 0, Plateau = 0, KFast = -Inf)
         )
     }
     if (phases == 2) {
@@ -47,7 +47,7 @@ fit_decay <- function(df, phases, starting){
                      fluorescence ~ decay2(X = time, Y0, Plateau, KFast, KSlow, PercentFast),
                      start = starting,
                      trace = F, control = nls.control(),
-                     lower = c(Y0 = 0, Plateau = 0, PercentFast = 0, KFast = 0, KSlow = 0),
+                     lower = c(Y0 = 0, Plateau = 0, PercentFast = 0, KFast = -Inf, KSlow = -Inf),
                      upper = c(PercentFast = 100, Y0 = Inf, Plateau = Inf, KFast = Inf, KSlow = Inf)
 
         )
@@ -59,7 +59,7 @@ fit_decay <- function(df, phases, starting){
                                      start = starting,
                                      trace = F, control = nls.control(),
                                      lower = c(Y0 = 0, Plateau = 0, PercentFast = 0, PercentSlow = 0,
-                                               KFast = 0, KSlow = 0, Kmedium = 0),
+                                               KFast = -Inf, KSlow = -Inf, Kmedium = -Inf),
                                      upper = c(PercentFast = 100, PercentSlow = 100, Y0 = Inf, Plateau = Inf,
                                                KFast = Inf, KSlow = Inf, Kmedium = Inf)
         )
