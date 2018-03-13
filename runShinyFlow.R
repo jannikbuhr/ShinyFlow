@@ -6,4 +6,4 @@
 # -> You need to install the shiny package first with install.packages("shiny")
 
 library(shiny)
-runGitHub("ShinyFlow", "jannikbuhr")
+runGitHub("ShinyFlow", "jannikbuhr", launch.browser = T)
