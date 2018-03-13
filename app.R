@@ -108,10 +108,10 @@ ui <- dashboardPage(
                      tabsetPanel(
                          tabPanel(title = "1 Phase exponential dacay",
                                   inputPanel(h4("Starting Values"),
+                                             actionButton("go1", "Go!"),
                                       numericInput("Y01", "Y0", value = 9.48),
                                       numericInput("Plateau1", "Plateau", value = 8.61),
-                                      numericInput("KFast1", "KFast", value = 40),
-                                      actionButton("go1", "Go!")
+                                      numericInput("KFast1", "KFast", value = 40)
                                   ),
                                   fluidPage(
                                       box(title = "Plot of Fit",
@@ -130,12 +130,12 @@ ui <- dashboardPage(
                          ),
                          tabPanel(title = "2 Phase exponential dacay",
                                   inputPanel(h4("Starting Values"),
+                                             actionButton("go2", "Go!"),
                                       numericInput("Y02", "Y0", value = 9.48),
                                       numericInput("Plateau2", "Plateau", value = 8.61),
                                       numericInput("KFast2", "KFast", value = 40),
                                       numericInput("KSlow2", "KSlow", value = 5),
-                                      numericInput("PercentFast2", "PercentFast", value = 90),
-                                      actionButton("go2", "Go!")
+                                      numericInput("PercentFast2", "PercentFast", value = 90)
                                   ),
                                   fluidPage(
                                       box(title = "Plot of Fit",
@@ -153,14 +153,15 @@ ui <- dashboardPage(
                          ),
                          tabPanel(title = "3 Phase exponential dacay",
                                   inputPanel(h4("Starting Values"),
+                                      actionButton("go3", "Go!"),
                                       numericInput("Y03", "Y0", value = 9.54),
                                       numericInput("Plateau3", "Plateau", value = 8.46),
                                       numericInput("KFast3", "KFast", value = 50),
                                       numericInput("Kmedium3", "Kmedium", value = 11),
                                       numericInput("KSlow3", "KSlow", value = 0.3),
                                       numericInput("PercentFast3", "PercentFast", value = 66),
-                                      numericInput("PercentSlow3", "PercentSlow", value = 17),
-                                      actionButton("go3", "Go!")
+                                      numericInput("PercentSlow3", "PercentSlow", value = 17)
+
                                   ),
                                   fluidPage(
                                       box(title = "Plot of Fit",
