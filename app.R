@@ -39,6 +39,7 @@ ui <- dashboardPage(
 
         # Inputs
         menuItem("Data", icon = icon("flask"), startExpanded = T,
+                 numericInput("delete", "Delete first n Rows (leave only your numbers):", min = 0, value = 31, step = 1),
                  fileInput(inputId = "file", label = "Raw input data", accept = c("text/csv", ".csv"))
         ),
 
@@ -212,15 +213,19 @@ server <- function(input, output) {
 
 
     # Read Raw Data
+    delete <- reactive({
+        input$delete
+    })
+
     rawdata <- reactive({
         inFile <- input$file
 
         # Check if a file is selected
         req(inFile)
 
-        df <- read_csv(inFile$datapath, skip = 30)
-        df <- filter(df, !is.na(Time))
-        df <- df %>% rename(fluorescence = Wavelength, time = Time)
+        df <- read_csv(inFile$datapath, skip = delete(), col_names = F) %>%
+            rename(time = X1, fluorescence = X2)
+        df <- filter(df, !is.na(time))
         df
     })
 
