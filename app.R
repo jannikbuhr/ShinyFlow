@@ -32,9 +32,9 @@ ui <- dashboardPage(
     # Sidebar
     dashboardSidebar(
         h5("Jannik Buhr",
-        a(href= "mailto:jannik.buhr@stud.uni-heidelberg.de",
-          icon("envelope", lib = "font-awesome")
-        )),
+           a(href= "mailto:jannik.buhr@stud.uni-heidelberg.de",
+             icon("envelope", lib = "font-awesome")
+           )),
         hr(),
 
         # Inputs
@@ -44,8 +44,11 @@ ui <- dashboardPage(
         ),
 
         menuItem("Options", icon = icon("cogs"), startExpanded = T,
-                 numericInput(inputId = "filter", label = "Filter one value",
-                              value = 8),
+                 numericInput(inputId = "filter1", label = "From",
+                             min = 0, max = 10000, value = 0),
+                 numericInput(inputId = "filter2", label = "To",
+                             min = 0, max = 10000,
+                             value = 10000),
                  numericInput(inputId = "bin", label = "Bin Size",
                               value = 10, min = 1, max = 100, step = 1),
 
@@ -104,7 +107,7 @@ ui <- dashboardPage(
             tabPanel("Fits",
                      tabsetPanel(
                          tabPanel(title = "1 Phase exponential dacay",
-                                  inputPanel(
+                                  inputPanel(h4("Starting Values"),
                                       numericInput("Y01", "Y0", value = 9.48),
                                       numericInput("Plateau1", "Plateau", value = 8.61),
                                       numericInput("KFast1", "KFast", value = 40),
@@ -126,7 +129,7 @@ ui <- dashboardPage(
                                   )
                          ),
                          tabPanel(title = "2 Phase exponential dacay",
-                                  inputPanel(
+                                  inputPanel(h4("Starting Values"),
                                       numericInput("Y02", "Y0", value = 9.48),
                                       numericInput("Plateau2", "Plateau", value = 8.61),
                                       numericInput("KFast2", "KFast", value = 40),
@@ -149,7 +152,7 @@ ui <- dashboardPage(
                                   )
                          ),
                          tabPanel(title = "3 Phase exponential dacay",
-                                  inputPanel(
+                                  inputPanel(h4("Starting Values"),
                                       numericInput("Y03", "Y0", value = 9.54),
                                       numericInput("Plateau3", "Plateau", value = 8.46),
                                       numericInput("KFast3", "KFast", value = 50),
@@ -206,7 +209,7 @@ server <- function(input, output) {
                 title =  experiment(),
                 subtitle = paste(run(), "\n"),
                 x = "Time [s]",
-                y = "Fluorescenc [ ]",
+                y = "Fluorescenc",
                 caption = date()
             )
     }
@@ -248,8 +251,8 @@ server <- function(input, output) {
         df <- df %>%
             distinct(fluorescence, timestep, .keep_all = T)
 
-        # There is always a measurement at 8.00, why? I filter it for now
-        df <- df %>% filter(fluorescence > input$filter)
+        # Filter the range
+        df <- df %>% slice(input$filter1:input$filter2)
 
         # Summarize by the timestep grouping
         df <- df %>%
