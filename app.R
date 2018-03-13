@@ -1,5 +1,16 @@
+# Handling packaged installing and dependencies
 
-# packages --------------------------------------------------------------------------------------------------------
+#list of packages required
+list.of.packages <- c("shiny","shinydashboard","tidyverse","DT","broom","modelr","minpack.lm")
+
+#checking missing packages from list
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+
+#install missing ones
+if(length(new.packages)) install.packages(new.packages, dependencies = TRUE)
+
+
+# Load packages --------------------------------------------------------------------------------------------------------
 
 library(shiny)
 library(shinydashboard)
