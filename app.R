@@ -139,7 +139,8 @@ ui <- dashboardPage(
                                   ),
                                   fluidPage(
                                       box(title = "Plot of Fit",
-                                          plotOutput(outputId = "p2_plot")
+                                          plotOutput(outputId = "p2_plot"),
+                                          downloadButton("downloadPlot2")
                                       ),
                                       box(title = "Residuals",
                                           plotOutput(outputId = "p2_res")
@@ -165,7 +166,8 @@ ui <- dashboardPage(
                                   ),
                                   fluidPage(
                                       box(title = "Plot of Fit",
-                                          plotOutput(outputId = "p3_plot")
+                                          plotOutput(outputId = "p3_plot"),
+                                          downloadButton("downloadPlot3")
                                       ),
                                       box(title = "Residuals",
                                           plotOutput(outputId = "p3_res")
@@ -495,7 +497,6 @@ server <- function(input, output) {
     output$downloadPlot1 <- make_downloadbutton(p1_plot())
     output$downloadPlot2 <- make_downloadbutton(p2_plot())
     output$downloadPlot3 <- make_downloadbutton(p3_plot())
-
 
 
 
