@@ -223,7 +223,7 @@ server <- function(input, output) {
         # Check if a file is selected
         req(inFile)
 
-        df <- read_csv(inFile$datapath, skip = delete(), col_names = F) %>%
+        df <- read_csv(inFile$datapath, skip = delete(), col_names = F, n_max = 10000) %>%
             rename(time = X1, fluorescence = X2)
         df <- filter(df, !is.na(time))
         df
