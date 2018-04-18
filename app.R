@@ -45,7 +45,7 @@ ui <- dashboardPage(
 
         menuItem("Options", icon = icon("cogs"), startExpanded = T,
                  numericInput(inputId = "filter1", label = "From",
-                             min = 0, max = 10000, value = 0),
+                             min = 1, max = 10000, value = 1),
                  numericInput(inputId = "filter2", label = "To",
                              min = 0, max = 10000,
                              value = 10000),
@@ -255,14 +255,16 @@ server <- function(input, output) {
             distinct(fluorescence, timestep, .keep_all = T)
 
         # Filter the range
-        df <- df %>% slice(input$filter1:input$filter2)
+        df <- df %>% slice(input$filter1:input$filter2) %>% mutate(
+            time = time - time[1]
+        )
 
         # Summarize by the timestep grouping
         df <- df %>%
             group_by(timestep) %>%
             summarise(
                 fluorescence = mean(fluorescence),
-                time = mean(time)
+                time = median(time)
             ) %>%
             filter(!is.na(fluorescence)) %>%
             select(time, fluorescence)
