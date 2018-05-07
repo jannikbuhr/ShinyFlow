@@ -44,17 +44,17 @@ fit_decay <- function(df, phases, starting){
         mod <- nlsLM(data = df,
                      fluorescence ~ decay1(X = time, Y0, Plateau, KFast),
                      start = starting,
-                     trace = F, control = nls.control()
-                     #lower = c(Y0 = 0, Plateau = 0, KFast = -Inf)
+                     trace = F, control = nls.control(),
+                     lower = c(Y0 = -Inf, Plateau = -Inf, KFast = -Inf)
         )
     }
     if (phases == 2) {
         mod <- nlsLM(data = df,
                      fluorescence ~ decay2(X = time, Y0, Plateau, KFast, KSlow, PercentFast),
                      start = starting,
-                     trace = F, control = nls.control()
-                     #lower = c(Y0 = -Inf, Plateau = Inf, PercentFast = 0, KFast = -Inf, KSlow = -Inf),
-                     #upper = c(PercentFast = 100, Y0 = Inf, Plateau = Inf, KFast = Inf, KSlow = Inf)
+                     trace = F, control = nls.control(),
+                     lower = c(Y0 = -Inf, Plateau = -Inf, PercentFast = 0, KFast = -Inf, KSlow = -Inf),
+                     upper = c(PercentFast = 100, Y0 = Inf, Plateau = Inf, KFast = Inf, KSlow = Inf)
 
         )
     }
@@ -63,11 +63,11 @@ fit_decay <- function(df, phases, starting){
                                      fluorescence ~ decay3(X = time, Y0, Plateau, KFast, Kmedium, KSlow,
                                                            PercentFast, PercentSlow),
                                      start = starting,
-                                     trace = F, control = nls.control()
-                                     #lower = c(Y0 = -Inf, Plateau = Inf, PercentFast = 0, PercentSlow = 0,
-                                      #         KFast = -Inf, KSlow = -Inf, Kmedium = -Inf),
-                                     #upper = c(PercentFast = 100, PercentSlow = 100, Y0 = Inf, Plateau = Inf,
-                                      #         KFast = Inf, KSlow = Inf, Kmedium = Inf)
+                                     trace = F, control = nls.control(warnOnly = T),
+                                     lower = c(Y0 = -Inf, Plateau = -Inf, PercentFast = 0, PercentSlow = 0,
+                                             KFast = -Inf, KSlow = -Inf, Kmedium = -Inf),
+                                     upper = c(PercentFast = 100, PercentSlow = 100, Y0 = Inf, Plateau = Inf,
+                                             KFast = Inf, KSlow = Inf, Kmedium = Inf)
         )
     }
     return(mod)

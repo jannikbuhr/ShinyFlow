@@ -50,7 +50,7 @@ ui <- dashboardPage(
                              min = 0, max = 10000,
                              value = 10000),
                  numericInput(inputId = "bin", label = "Bin Size",
-                              value = 10, min = 1, max = 100, step = 1),
+                              value = 1, min = 1, max = 100, step = 1),
 
                  # Input for graphing and fitting
                  dateInput(inputId = "date", label = "date",
@@ -212,7 +212,7 @@ server <- function(input, output) {
                 title =  experiment(),
                 subtitle = paste(run(), "\n"),
                 x = "Time [s]",
-                y = "Fluorescenc",
+                y = "Fluorescenc [AU]",
                 caption = date()
             )
     }
