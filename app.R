@@ -20,8 +20,8 @@ library(broom)
 library(modelr)
 library(minpack.lm)
 
+# Source functions for fitting
 source("./fit_funs.R")
-
 
 # ui --------------------------------------------------------------------------------------------------------------
 
@@ -219,7 +219,6 @@ server <- function(input, output, session) {
             )
     }
 
-
     # Read Raw Data
     delete <- reactive({
         input$delete
@@ -353,7 +352,7 @@ server <- function(input, output, session) {
         p <- data_model1() %>% plt() +
             geom_line(aes(y = pred),
                       color = "darkorange",
-                      size = 1.2,
+                      size = 1,
                       alpha = 0.9)
         return(p)
     })
@@ -383,7 +382,7 @@ server <- function(input, output, session) {
 
 
     # Send to fitted plots output
-    output$p2_plot <- renderPlot({
+    p2_plot <- reactive({
         p <- data_model2() %>% plt() +
             geom_line(aes(y = pred),
                       color = "darkorange",
@@ -391,6 +390,8 @@ server <- function(input, output, session) {
                       alpha = 0.9)
         return(p)
     })
+
+    output$p2_plot <- renderPlot(p2_plot())
 
 
     ## 3 Phase
@@ -415,7 +416,7 @@ server <- function(input, output, session) {
     })
 
     # Send to fitted plots output
-    output$p3_plot <- renderPlot({
+    p3_plot <- reactive({
         p <- data_model3() %>% plt() +
             geom_line(aes(y = pred),
                       color = "darkorange",
@@ -423,6 +424,8 @@ server <- function(input, output, session) {
                       alpha = 0.9)
         return(p)
     })
+
+    output$p3_plot <- renderPlot(p3_plot())
 
     # Resiuduals
     # 1 Phase
@@ -499,7 +502,7 @@ server <- function(input, output, session) {
             filename = function() { paste0(substr(input$file, 1, nchar(input$file)-4), "_fit", ".",
                                            as.character(graphic_device())) },
             content = function(file) {
-                ggsave(file, plot = plot, device = graphic_device())
+                ggsave(file, plot = plot, device = graphic_device(), dpi = 300)
             }
         )
     }
