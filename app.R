@@ -45,10 +45,10 @@ ui <- dashboardPage(
 
         menuItem("Options", icon = icon("cogs"), startExpanded = T,
                  numericInput(inputId = "filter1", label = "From",
-                             min = 1, max = 10000, value = 1),
+                              min = 1, max = 10000, value = 1),
                  numericInput(inputId = "filter2", label = "To",
-                             min = 0, max = 10000,
-                             value = 10000),
+                              min = 0, max = 10000,
+                              value = 10000),
                  numericInput(inputId = "bin", label = "Bin Size",
                               value = 1, min = 1, max = 100, step = 1),
 
@@ -109,9 +109,9 @@ ui <- dashboardPage(
                          tabPanel(title = "1 Phase exponential dacay",
                                   inputPanel(h4("Starting Values"),
                                              actionButton("go1", "Go!"),
-                                      numericInput("Y01", "Y0", 7),
-                                      numericInput("Plateau1", "Plateau", 9),
-                                      numericInput("KFast1", "KFast", 40)
+                                             numericInput("Y01", "Y0", 7),
+                                             numericInput("Plateau1", "Plateau", 9),
+                                             numericInput("KFast1", "KFast", 40)
                                   ),
                                   fluidPage(
                                       box(title = "Plot of Fit",
@@ -131,11 +131,11 @@ ui <- dashboardPage(
                          tabPanel(title = "2 Phase exponential dacay",
                                   inputPanel(h4("Starting Values"),
                                              actionButton("go2", "Go!"),
-                                      numericInput("Y02", "Y0", 7),
-                                      numericInput("Plateau2", "Plateau", 9),
-                                      numericInput("KFast2", "KFast", 40),
-                                      numericInput("KSlow2", "KSlow", 5),
-                                      numericInput("PercentFast2", "PercentFast", 90)
+                                             numericInput("Y02", "Y0", 7),
+                                             numericInput("Plateau2", "Plateau", 9),
+                                             numericInput("KFast2", "KFast", 40),
+                                             numericInput("KSlow2", "KSlow", 5),
+                                             numericInput("PercentFast2", "PercentFast", 90)
                                   ),
                                   fluidPage(
                                       box(title = "Plot of Fit",
@@ -154,14 +154,14 @@ ui <- dashboardPage(
                          ),
                          tabPanel(title = "3 Phase exponential dacay",
                                   inputPanel(h4("Starting Values"),
-                                      actionButton("go3", "Go!"),
-                                      numericInput("Y03", "Y0", 7),
-                                      numericInput("Plateau3", "Plateau", 9),
-                                      numericInput("KFast3", "KFast", 40),
-                                      numericInput("Kmedium3", "Kmedium", 5),
-                                      numericInput("KSlow3", "KSlow", 1),
-                                      numericInput("PercentFast3", "PercentFast", 90),
-                                      numericInput("PercentSlow3", "PercentSlow", 5)
+                                             actionButton("go3", "Go!"),
+                                             numericInput("Y03", "Y0", 7),
+                                             numericInput("Plateau3", "Plateau", 9),
+                                             numericInput("KFast3", "KFast", 40),
+                                             numericInput("Kmedium3", "Kmedium", 5),
+                                             numericInput("KSlow3", "KSlow", 1),
+                                             numericInput("PercentFast3", "PercentFast", 90),
+                                             numericInput("PercentSlow3", "PercentSlow", 5)
 
                                   ),
                                   fluidPage(
@@ -187,7 +187,7 @@ ui <- dashboardPage(
 
 
 # server ----------------------------------------------------------------------------------------------------------
-server <- function(input, output) {
+server <- function(input, output, session) {
 
     # Make infos available
     experiment <- reactive({
@@ -206,6 +206,8 @@ server <- function(input, output) {
     plt <- function(df){
         ggplot(data = df) +
             aes(x = time, y = fluorescence) +
+            # geom_errorbar(aes(ymin = fluorescence - SEM, ymax = fluorescence + SEM),
+            #               alpha = .8)+
             geom_point() +
             theme_classic() +
             labs(
@@ -230,8 +232,13 @@ server <- function(input, output) {
         req(inFile)
 
         df <- read_csv(inFile$datapath, skip = delete(), col_names = F, n_max = 10000) %>%
-            rename(time = X1, fluorescence = X2)
-        df <- filter(df, !is.na(time))
+            rename(time = X1) %>%
+            filter(!is.na(time)) %>%
+            gather(-time, key = "rep", value = "fluor") %>% group_by(time) %>% summarise(
+                fluorescence = mean(fluor),
+                SD = sd(fluor),
+                SEM = sd(fluor) / sqrt(n())
+            )
         df
     })
 
@@ -264,10 +271,12 @@ server <- function(input, output) {
             group_by(timestep) %>%
             summarise(
                 fluorescence = mean(fluorescence),
-                time = mean(time)
+                time = mean(time),
+                SD = max(SD),# grouping adjacent values will give the maximum SD for the mean to be on the safe side
+                SEM = max(SEM)
             ) %>%
             filter(!is.na(fluorescence)) %>%
-            select(time, fluorescence)
+            select(-timestep)
         df
     })
 
@@ -501,7 +510,8 @@ server <- function(input, output) {
     output$downloadPlot3 <- make_downloadbutton(p3_plot())
 
 
-
+    # End session on closing of browser window
+    session$onSessionEnded(stopApp)
 }
 
 
