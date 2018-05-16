@@ -8,7 +8,8 @@ list.of.packages <-
       "DT",
       "broom",
       "modelr",
-      "minpack.lm")
+      "minpack.lm",
+      "MASS")
 
 #checking missing packages from list
 new.packages <-
@@ -21,6 +22,7 @@ if (length(new.packages))
 
 # Load packages --------------------------------------------------------------------------------------------------------
 
+library(MASS)
 library(shiny)
 library(shinydashboard)
 library(tidyverse)
@@ -134,7 +136,7 @@ ui <- dashboardPage(
                              and averaged over these groups"
                          ),
                          downloadButton(outputId = "download", label = "Download processed data")
-                     )
+                         )
                  )),
 
         # Plots
@@ -155,9 +157,9 @@ ui <- dashboardPage(
                          inputPanel(
                              h4("Starting Values"),
                              actionButton("go1", "Go!"),
-                             numericInput("Y01", "Y0", 0),
-                             numericInput("Plateau1", "Plateau", 1),
-                             numericInput("KFast1", "KFast", 40)
+                             numericInput("Y01", "Y0", 0.000),
+                             numericInput("Plateau1", "Plateau", 1.000),
+                             numericInput("KFast1", "KFast", 40.000)
                          ),
                          fluidPage(
                              box(
@@ -181,11 +183,11 @@ ui <- dashboardPage(
                          inputPanel(
                              h4("Starting Values"),
                              actionButton("go2", "Go!"),
-                             numericInput("Y02", "Y0", 0),
-                             numericInput("Plateau2", "Plateau", 1),
-                             numericInput("KFast2", "KFast", 40),
-                             numericInput("KSlow2", "KSlow", 5),
-                             numericInput("PercentFast2", "PercentFast", 90)
+                             numericInput("Y02", "Y0", 0.000),
+                             numericInput("Plateau2", "Plateau", 1.000),
+                             numericInput("KFast2", "KFast", 40.000),
+                             numericInput("KSlow2", "KSlow", 5.000),
+                             numericInput("PercentFast2", "PercentFast", 90.000)
                          ),
                          fluidPage(
                              box(
@@ -209,13 +211,13 @@ ui <- dashboardPage(
                          inputPanel(
                              h4("Starting Values"),
                              actionButton("go3", "Go!"),
-                             numericInput("Y03", "Y0", 0),
-                             numericInput("Plateau3", "Plateau", 1),
-                             numericInput("KFast3", "KFast", 40),
-                             numericInput("Kmedium3", "Kmedium", 5),
-                             numericInput("KSlow3", "KSlow", 1),
-                             numericInput("PercentFast3", "PercentFast", 90),
-                             numericInput("PercentSlow3", "PercentSlow", 5)
+                             numericInput("Y03", "Y0", 0.000),
+                             numericInput("Plateau3", "Plateau", 1.000),
+                             numericInput("KFast3", "KFast", 40.000),
+                             numericInput("Kmedium3", "Kmedium", 5.000, step = 0.001),
+                             numericInput("KSlow3", "KSlow", 1.000),
+                             numericInput("PercentFast3", "PercentFast", 90.000),
+                             numericInput("PercentSlow3", "PercentSlow", 5.000)
 
                          ),
                          fluidPage(
@@ -236,8 +238,8 @@ ui <- dashboardPage(
                          )
                      )
                  ))
-    ))
-)
+        ))
+    )
 
 
 # server ----------------------------------------------------------------------------------------------------------
@@ -293,9 +295,9 @@ server <- function(input, output, session) {
             rename(time = X1) %>%
             filter(!is.na(time)) %>%
             gather(-time, key = "rep", value = "fluor") %>%
-                group_by(rep) %>%
-                mutate( fluor = fluor-min(fluor)) %>%
-                group_by(time) %>% summarise(
+            group_by(rep) %>%
+            mutate(fluor = fluor - min(fluor, na.rm = T)) %>%
+            group_by(time) %>% summarise(
                 fluorescence = mean(fluor),
                 SD = sd(fluor),
                 SEM = sd(fluor) / sqrt(n())
@@ -314,17 +316,16 @@ server <- function(input, output, session) {
             try(df <- df %>% mutate(timestep = rep(seq(
                 1:(length_data / bin_size)
             ), each = bin_size)))
-            , message = paste(
+            ,
+            message = paste(
                 "Please choose a bin size that fits the lenght of your data, which is",
                 length_data
             )
         ))
-        # delete rows that are not unique (i.e. repeated measurement of the same value)
-        df <- df %>%
-            distinct(fluorescence, timestep, .keep_all = T)
 
         # Filter the range
-        df <- df %>% slice(input$filter1:input$filter2) %>% mutate(time = time - time[1])
+        df <-
+            df %>% slice(input$filter1:input$filter2) %>% mutate(time = time - time[1])
 
         # Summarize by the timestep grouping
         df <- df %>%
@@ -333,11 +334,9 @@ server <- function(input, output, session) {
                 fluorescence = mean(fluorescence),
                 time = mean(time),
                 SD = max(SD),
-                # grouping adjacent values will give the maximum SD for the mean to be on the safe side
                 SEM = max(SEM)
             ) %>%
-            filter(!is.na(fluorescence)) %>%
-            select(-timestep)
+            filter(!is.na(fluorescence)) %>% dplyr::select(-timestep)
         df
     })
 
@@ -377,23 +376,17 @@ server <- function(input, output, session) {
     # raw
     output$raw_plot <- renderPlot({
         s = input$raw_rows_selected
-        new <- rawdata()[s, ]
+        new <- rawdata()[s,]
         p <- rawdata() %>% plt()
         p + geom_point(data = new, color = "red")
     })
     # processed
     output$processed_plot <- renderPlot({
         s = input$data_rows_selected
-        new <- rawdata()[s, ]
+        new <- rawdata()[s,]
         p <- final() %>% plt()
         p + geom_point(data = new, color = "red")
     })
-
-
-    # # Test Output for debugging
-    # output$test <- renderPrint({
-    #     model1()
-    # })
 
 
 
@@ -550,15 +543,18 @@ server <- function(input, output, session) {
             geom_point()
     })
 
+    digits <- 10
     # Model summary outputs
     # 1 Phase
     output$p1_tidy <- renderTable({
-        tidy(model1()) %>% left_join(confint(model1()) %>% as_tibble(rownames = "term"))
-    })
+        t <- tidy(model1())
+        try(t <- t %>% left_join(confint(model1()) %>% as_tibble(rownames = "term")))
+        return(t)
+    }, digits = digits)
 
     output$p1_glance <- renderTable({
         glance(model1())
-    })
+    }, digits = digits)
 
     output$p1_summary <- renderPrint({
         summary(model1()) %>% print()
@@ -566,12 +562,14 @@ server <- function(input, output, session) {
 
     # 2 Phase
     output$p2_tidy <- renderTable({
-        tidy(model2()) %>% left_join(confint(model2()) %>% as_tibble(rownames = "term"))
-    })
+        t <- tidy(model2())
+        try(t <- t %>% left_join(confint(model2()) %>% as_tibble(rownames = "term")))
+        return(t)
+    }, digits = digits)
 
     output$p2_glance <- renderTable({
         glance(model2())
-    })
+    }, digits = digits)
 
     output$p2_summary <- renderPrint({
         summary(model2())
@@ -579,12 +577,14 @@ server <- function(input, output, session) {
 
     # 3 Phase
     output$p3_tidy <- renderTable({
-        tidy(model3()) %>% left_join(confint(model2()) %>% as_tibble(rownames = "term"))
-    })
+        t <- tidy(model3())
+        try(t <- t %>% left_join(confint(model3()) %>% as_tibble(rownames = "term")))
+        return(t)
+    }, digits = digits)
 
     output$p3_glance <- renderTable({
         glance(model3())
-    })
+    }, digits = digits)
 
     output$p3_summary <- renderPrint({
         summary(model3())
