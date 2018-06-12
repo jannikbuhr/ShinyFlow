@@ -28,8 +28,8 @@ decay2 <- function(X, Y0, Plateau, KFast, KSlow, PercentFast){
 #Y=Plateau + YFast + YMedium +YSlow
 
 decay3 <- function(X, Y0, Plateau, KFast, Kmedium, KSlow, PercentFast, PercentSlow){
-    YFast <- (Y0-Plateau)*PercentFast * 0.01 * exp(-KFast*X)
-    YSlow <- (Y0-Plateau)*PercentSlow * 0.01 * exp(-KSlow*X)
+    YFast <- (Y0-Plateau)*PercentFast * 0.01 * exp(-KFast * X)
+    YSlow <- (Y0-Plateau)*PercentSlow * 0.01 * exp(-KSlow * X)
     YMedium <- (Y0-Plateau)*(100-PercentFast - PercentSlow) * 0.01 * exp(-Kmedium*X)
     Y <- Plateau + YFast + YMedium + YSlow
     return(Y)
@@ -54,7 +54,7 @@ fit_decay <- function(df, phases, starting){
         mod <- nlsLM(data = df,
                      fluorescence ~ decay1(X = time, Y0, Plateau, KFast),
                      start = starting,
-                     trace = T, control =  nls.control(warnOnly = T, maxiter = 500,
+                     trace = F, control =  nls.control(warnOnly = T, maxiter = 500,
                                                        minFactor = 2^-50),
                      lower = c(Y0 = -Inf, Plateau = -Inf, KFast = -Inf),
                      upper = c(Y0 = Inf, Plateau = Inf, KFast = Inf)
@@ -64,7 +64,7 @@ fit_decay <- function(df, phases, starting){
         mod <- nlsLM(data = df,
                      fluorescence ~ decay2(X = time, Y0, Plateau, KFast, KSlow, PercentFast),
                      start = starting,
-                     trace = T, control =  nls.control(warnOnly = T, maxiter = 500,
+                     trace = F, control =  nls.control(warnOnly = T, maxiter = 500,
                                                        minFactor = 2^-50),
                      lower = c(Y0 = -Inf, Plateau = -Inf, PercentFast = 0, KFast = -Inf, KSlow = -Inf),
                      upper = c(PercentFast = 100, Y0 = Inf, Plateau = Inf, KFast = Inf, KSlow = Inf)
@@ -76,7 +76,7 @@ fit_decay <- function(df, phases, starting){
                                      fluorescence ~ decay3(X = time, Y0, Plateau, KFast, Kmedium, KSlow,
                                                            PercentFast, PercentSlow),
                                      start = starting,
-                                     trace = T, control =  nls.control(warnOnly = T, maxiter = 500,
+                                     trace = F, control =  nls.control(warnOnly = T, maxiter = 500,
                                                                        minFactor = 2^-50),
                                      lower = c(Y0 = -Inf, Plateau = -Inf, PercentFast = 0, PercentSlow = 0,
                                              KFast = -Inf, KSlow = -Inf, Kmedium = -Inf),

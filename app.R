@@ -296,7 +296,6 @@ server <- function(input, output, session) {
             filter(!is.na(time)) %>%
             gather(-time, key = "rep", value = "fluor") %>%
             group_by(rep) %>%
-            mutate(fluor = fluor - min(fluor, na.rm = T)) %>%
             group_by(time) %>% summarise(
                 fluorescence = mean(fluor),
                 SD = sd(fluor),
@@ -336,7 +335,11 @@ server <- function(input, output, session) {
                 SD = max(SD),
                 SEM = max(SEM)
             ) %>%
-            filter(!is.na(fluorescence)) %>% dplyr::select(-timestep)
+            filter(!is.na(fluorescence)) %>% dplyr::select(-timestep) %>%
+            mutate(
+                fluorescence = fluorescence - min(fluorescence),
+                time = time - min(time)
+            )
         df
     })
 
